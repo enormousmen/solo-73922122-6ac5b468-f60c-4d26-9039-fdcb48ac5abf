@@ -31,6 +31,12 @@ ACTIVE_STATES = (OrderState.STARTING, OrderState.UNKNOWN, OrderState.RUNNING)
 class Order:
     server_id: str
     occupied_amps: float
+    # 本单合闸指令的单调代号。PDU 会拒绝代号早于当前断电围栏的合闸，
+    # 释放额度时也要求 PDU 已确认存在晚于该代号的断电围栏。
+    close_generation: int = 0
+    # 本单期间最近一次断电指令的代号；非空表示已下发过断电，
+    # 迟到的“已稳定”快照不得再据此降低占额。
+    open_generation: int | None = None
     id: str = field(default_factory=lambda: uuid.uuid4().hex[:12])
     state: OrderState = OrderState.STARTING
     receipt: dict | None = None

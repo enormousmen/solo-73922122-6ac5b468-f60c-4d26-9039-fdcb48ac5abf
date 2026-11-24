@@ -1,4 +1,7 @@
-"""PDU HTTP 客户端：下发合闸/断电指令、查询插座状态。"""
+"""PDU HTTP 客户端：下发合闸/断电指令、查询插座状态。
+
+合闸/断电都携带单调递增的指令代号（generation），PDU 据此拒绝过期合闸。
+"""
 from __future__ import annotations
 
 import httpx
@@ -8,13 +11,17 @@ class HttpxPDUClient:
     def __init__(self, base_url: str, timeout: float) -> None:
         self._client = httpx.AsyncClient(base_url=base_url.rstrip("/"), timeout=timeout)
 
-    async def close(self, server_id: str) -> dict:
-        resp = await self._client.post(f"/pdu/close/{server_id}")
+    async def close(self, server_id: str, generation: int) -> dict:
+        resp = await self._client.post(
+            f"/pdu/close/{server_id}", params={"generation": generation}
+        )
         resp.raise_for_status()
         return resp.json()
 
-    async def open(self, server_id: str) -> dict:
-        resp = await self._client.post(f"/pdu/open/{server_id}")
+    async def open(self, server_id: str, generation: int) -> dict:
+        resp = await self._client.post(
+            f"/pdu/open/{server_id}", params={"generation": generation}
+        )
         resp.raise_for_status()
         return resp.json()
 
